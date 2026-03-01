@@ -5,6 +5,8 @@ import cookieParser from 'cookie-parser';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
 import helmet from 'helmet';
+import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import { apiReference } from '@scalar/nestjs-api-reference';
 
 import { AppModule } from './app.module';
 import { JwtAuthGuard } from './auth/jwt-auth.guard';
@@ -38,15 +40,33 @@ async function bootstrap() {
     credentials: true,
   });
 
-  //config helmet
-  app.use(helmet());
-
   //config versioning
   app.setGlobalPrefix('api');
   app.enableVersioning({
     type: VersioningType.URI,
-    defaultVersion: ['1', '2'],
+    defaultVersion: ['1'],
   });
+
+  //config swagger - expose OpenAPI JSON at /swagger-json
+  const swaggerConfig = new DocumentBuilder()
+    .setTitle('API Recruitment')
+    .setDescription('API tuyển dụng - Quản lý công ty, việc làm, hồ sơ ứng tuyển')
+    .setVersion('1.0')
+    .addBearerAuth(
+      { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },
+      'token',
+    )
+    .build();
+  const document = SwaggerModule.createDocument(app, swaggerConfig);
+  SwaggerModule.setup('swagger', app, document);
+
+  //config scalar - API reference UI at /reference
+  app.use(
+    '/reference',
+    apiReference({
+      url: '/swagger-json',
+    }),
+  );
 
   await app.listen(configService.get<string>('PORT'));
 }
