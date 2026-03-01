@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
-import ms from 'ms';
+import ms, { StringValue } from 'ms';
 import { Response } from 'express';
 
 import { UsersService } from 'src/users/users.service';
@@ -46,7 +46,7 @@ export class AuthService {
     const refresh_token = this.jwtService.sign(payload, {
       secret: this.configService.get<string>('JWT_REFRESH_TOKEN_SECRET'),
       expiresIn:
-        ms(this.configService.get<string>('JWT_REFRESH_EXPIRE')) / 1000,
+        ms(this.configService.get<string>('JWT_REFRESH_EXPIRE') as StringValue) / 1000,
     });
     return refresh_token;
   };
@@ -70,7 +70,7 @@ export class AuthService {
     //set refresh_token as cookies
     response.cookie('refresh_token', refresh_token, {
       httpOnly: true,
-      maxAge: ms(this.configService.get<string>('JWT_REFRESH_EXPIRE')),
+      maxAge: ms(this.configService.get<string>('JWT_REFRESH_EXPIRE') as StringValue),
     });
 
     return {
@@ -126,7 +126,7 @@ export class AuthService {
 
         response.cookie('refresh_token', refresh_token, {
           httpOnly: true,
-          maxAge: ms(this.configService.get<string>('JWT_REFRESH_EXPIRE')),
+          maxAge: ms(this.configService.get<string>('JWT_REFRESH_EXPIRE') as StringValue),
         });
 
         return {
